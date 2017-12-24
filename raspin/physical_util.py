@@ -102,11 +102,6 @@ def read_analog(ch):
 def read_analog_volt(ch, rate = 1):
     return read_analog(ch) * (3.3/4096.0) * 3
 
-
-def create_pwm(port, freq):
-    return pwm_port(do_drive, port, freq)
-
-
 def clear():
     if do_drive:
         GPIO.cleanup()
@@ -114,29 +109,3 @@ def clear():
     else:
         log("cleanup")
 
-class pwm_port:
-    def __init__(self, _env, _port, _freq):
-        self.env = _env
-        self.port = _port
-        if _env:
-            log("setup pysical info")
-            GPIO.setup(_port, GPIO.OUT)
-            self.p = GPIO.PWM(_port, _freq)  # 50hz pwm
-            self.p.start(0)
-        else:
-            log("is emu mode")
-
-
-    def set(self, cycle):
-        if self.env:
-            log("actually set duty of {num}, as {duty}".format(num = self.port, duty = cycle))
-            self.p.ChangeDutyCycle(cycle)
-        else:
-            log("set duty of {num}, as {duty}".format(num = self.port, duty = cycle))
-
-
-def pwm(rate):
-    print(rate)
-    rate = min(rate, 95)
-    rate = max(rate, 5)
-    wiringpi.pwmWrite(18,rate)
