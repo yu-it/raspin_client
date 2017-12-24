@@ -7,6 +7,10 @@ import requests
 import sseclient
 import threading
 
+
+
+
+
 class api:
     If_Numbers = "if_numbers"
     If_Messages = "if_messages"
@@ -22,6 +26,7 @@ class api:
         self.current_machine = ""
         self.current_process = ""
         self.current_if = ""
+        self.observing = {}
         self.ping()
     def __api_url(self, path):
         return self.__http_get(self.api_template.format(query = path))
@@ -111,6 +116,14 @@ class api:
             return self.__http_get(self.process_url(machine, process))
         except Exception as ex:
             raise Exception(ex)
+    def delete_process(self, process_id, machine = None):
+        if machine is None:
+            machine = self.current_machine
+        try:
+            self.current_process = process_id
+            return self.__http_delete(self.process_url(machine, process_id))
+        except Exception as ex:
+            raise Exception(ex)
     def put_process(self, process_id, process_disp_name=None, machine = None):
         if machine is None:
             machine = self.current_machine
@@ -147,6 +160,18 @@ class api:
             return self.__http_get(self.if_url(machine, process, if_kind) + "/" + if_id  + "?if_disp_name=" + if_disp_name)
         except Exception as ex:
             raise Exception(ex)
+    def delete_if(self, if_kind, if_id, process=None, machine=None):
+        if process is None:
+            process = self.current_process
+        if machine is None:
+            machine = self.current_machine
+        try:
+            self.current_machine = machine
+            self.current_process = process
+            return self.__http_delete(self.if_url(machine, process, if_kind) + "/" + if_id )
+        except Exception as ex:
+            raise Exception(ex)
+
     def put_if_common_logic(self, if_kind, if_id, json, if_disp_name=None, process=None, machine=None):
         if process is None:
             process = self.current_process
@@ -170,23 +195,33 @@ class api:
         return self.put_if_common_logic(self.If_Buttons , if_name, {"on": on_name, "off": off_name}, if_disp_name, process, machine)
     def put_toggle_if(self, if_name, status, if_disp_name=None, process=None, machine=None):
         return self.put_if_common_logic(self.If_Toggles, if_name, {"status": status}, if_disp_name, process, machine)
+
     def dispatcher_function(self, url, func):
         res = sseclient.SSEClient(requests.get(url, stream = True))
+        self.observing[threading.current_thread().ident] = res
+
         for event in res.events():
             event = json.loads(event.data)
             try:
                 func(event["data"])
             except Exception as ex:
+                print ex
                 pass
             self.__http_put(self.api_template.format(query=event["reply_id"]))
+
 
     def start_signal_observing(self, if_kind, if_id, handler, process=None, machine=None):
         if process is None:
             process = self.current_process
         if machine is None:
             machine = self.current_machine
-        url = self.api_template.format(query="" + if_id + "/data/signal")
-        threading.Thread(target=self.dispatcher_function,args = (url, handler)).start()
+        url = self.if_url(machine,process,if_kind) + "/" + if_id + "/data/signal"
+        t = threading.Thread(target=self.dispatcher_function,args = (url, handler))
+        t.start()
+        return t
+    def end_signal_observing(self, t):
+        res = self.observing[t.ident]
+        res.close()
     def put_data(self, if_kind, if_id, data, process=None, machine=None):
         if process is None:
             process = self.current_process
@@ -198,6 +233,4 @@ class api:
             return self.__http_put(self.if_url(machine, process, if_kind) + "/" + if_id + "/data", {"data":data,"data2":data})
         except Exception as ex:
             raise Exception(ex)
-
-
 

@@ -61,8 +61,8 @@ def receive_arrow(data):
     print "arrow:" + str(data)
 
 
-api.start_signal_observing("if_arrows", r_move[1], receive_arrow)
-api.start_signal_observing("if_toggle", r_tgl[1], receive_toggle)
+api.start_signal_observing("if_arrows", "move", receive_arrow)
+api.start_signal_observing("if_toggle", "speed", receive_toggle)
 while True:
     api.put_data("if_numbers", "cpu",random.randrange(1,99), "computing_resource_logger")
     api.put_data("if_numbers", "memory",random.randrange(1,99), "computing_resource_logger")
