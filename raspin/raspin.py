@@ -33,12 +33,16 @@ class api:
     def __api_url(self, path):
         return self.__http_get(self.api_template.format(query = path))
     def __http_get(self, url):
+        url = self.cleansing_uri(url)
         self.__log ("get:" + url)
         return self.process_response(requests.get(url))
     def __http_delete(self, url):
+        url = self.cleansing_uri(url)
         self.__log ("delete:" + url)
         return self.process_response(requests.delete(url))
     def __http_put(self, url, json_arg = None):
+        url = self.cleansing_uri(url)
+
         self.__log ("put:" + url + ",json:" +  json.dumps(json_arg))
         if (json_arg is None) :
             r = requests.put(url,
