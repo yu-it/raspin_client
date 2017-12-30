@@ -28,6 +28,8 @@ class api:
         self.current_if = ""
         self.observing = {}
         self.ping()
+    def cleansing_uri(self,urlstr):
+        return urlstr.replace("//","/")
     def __api_url(self, path):
         return self.__http_get(self.api_template.format(query = path))
     def __http_get(self, url):
