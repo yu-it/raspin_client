@@ -5,8 +5,7 @@ import urlparse
 import json
 import requests
 import sseclient
-import os
-from multiprocessing import Process
+import threading
 
 
 
@@ -205,7 +204,7 @@ class api:
 
     def dispatcher_function(self, url, func):
         res = sseclient.SSEClient(requests.get(url, stream = True))
-        self.observing[os.getpid()] = res
+        self.observing[threading.current_thread().ident] = res
 
         for event in res.events():
             print("get event:" + event.data)
@@ -224,11 +223,11 @@ class api:
         if machine is None:
             machine = self.current_machine
         url = self.if_url(machine,process,if_kind) + "/" + if_id + "/data/signal"
-        t = Process(target=self.dispatcher_function,args = (url, handler))
+        t = threading.Thread(target=self.dispatcher_function,args = (url, handler))
         t.start()
         return t
     def end_signal_observing(self, t):
-        res = self.observing[os.getpid()]
+        res = self.observing[t.ident]
         res.close()
     def put_data(self, if_kind, if_id, data, process=None, machine=None):
         if process is None:
