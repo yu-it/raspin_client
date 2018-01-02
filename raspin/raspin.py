@@ -208,7 +208,7 @@ class api:
         self.observing[threading.current_thread().ident] = res
 
         for event in res.events():
-            print("get event({url}:{data".format(url=url,data=str(event)))
+            print("get event({url}:{data}".format(url=url,data=str(event)))
             event = json.loads(event.data)
             try:
                 func(event["data"])
