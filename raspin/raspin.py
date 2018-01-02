@@ -203,11 +203,12 @@ class api:
         return self.put_if_common_logic(self.If_Toggles, if_name, {"status": status}, if_disp_name, process, machine)
 
     def dispatcher_function(self, url, func):
+        print "dispatcher start {url}".format(url=url)
         res = sseclient.SSEClient(requests.get(url, stream = True))
         self.observing[threading.current_thread().ident] = res
 
         for event in res.events():
-            print("get event:" + event.data)
+            print("get event({url}:{data".format(url=url,data=str(event)))
             event = json.loads(event.data)
             try:
                 func(event["data"])
@@ -218,6 +219,7 @@ class api:
 
 
     def start_signal_observing(self, if_kind, if_id, handler, process=None, machine=None):
+        print "observe start {kind} : {id}".format(kind=if_kind, id=if_id)
         if process is None:
             process = self.current_process
         if machine is None:
