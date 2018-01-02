@@ -208,6 +208,7 @@ class api:
         self.observing[os.getpid()] = res
 
         for event in res.events():
+            print("get event:" + event.data)
             event = json.loads(event.data)
             try:
                 func(event["data"])
