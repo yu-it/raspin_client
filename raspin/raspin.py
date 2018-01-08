@@ -206,18 +206,19 @@ class api:
         print "dispatcher start {url}".format(url=url)
         res = sseclient.SSEClient(requests.get(url, stream = True))
         self.observing[threading.current_thread().ident] = res
-
-        for event in res.events():
-            print("get event({url}:{data}".format(url=url,data=str(event)))
-            event = json.loads(event.data)
-            try:
-                func(event["data"])
-            except Exception as ex:
-                print ex
-                pass
-            self.__http_put(self.api_template.format(query=event["reply_id"]))
-
-
+        try :
+            for event in res.events():
+                print("get event({url}:{data}".format(url=url,data=str(event)))
+                event = json.loads(event.data)
+                try:
+                    func(event["data"])
+                except Exception as ex:
+                    print ex
+                    pass
+                self.__http_put(self.api_template.format(query=event["reply_id"]))
+        except Exception as ex:
+            self.__log("exception:" + str(ex))
+            self.dispatcher_function(url, func)
     def start_signal_observing(self, if_kind, if_id, handler, process=None, machine=None):
         print "observe start {kind} : {id}".format(kind=if_kind, id=if_id)
         if process is None:
