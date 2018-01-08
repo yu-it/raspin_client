@@ -100,7 +100,7 @@ def read_analog(ch):
     return readadc(ch, SPICLK, SPIMOSI, SPIMISO, SPICS)
 
 def read_analog_volt(ch, rate = 1):
-    return read_analog(ch) * (3.3/4096.0) * 3
+    return read_analog(ch) * (3.3/4096.0) * rate
 
 def clear():
     if do_drive:
